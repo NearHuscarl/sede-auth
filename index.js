@@ -1,3 +1,5 @@
+require('dotenv').config({ path: '.env.local' })
+
 const express = require('express')
 const bodyParser = require('body-parser')
 const fetch = require('node-fetch')
@@ -5,17 +7,11 @@ const jsdom = require("jsdom");
 
 const app = express()
 const urlencodedParser = bodyParser.urlencoded({ extended: false })
-
-function getWhitelist(req) {
-    const dev = req.app.get('env')
-    const whitelist = ['https://sotoolkit.netlify.app']
-    if (dev) whitelist.push('http://localhost:3000')
-    return whitelist
-}
+let originWhitelist = process.env.ORIGIN_WHITELIST ? process.env.ORIGIN_WHITELIST.split(',') : []
 
 app.use((req, res, next) => {
     const { origin } = req.headers
-    if (getWhitelist(req).indexOf(origin) === -1) {
+    if (originWhitelist.length > 0 && originWhitelist.indexOf(origin) === -1) {
         res.writeHead(403, 'Forbidden', req.headers);
         res.end('The origin "' + origin + '" was not whitelisted by the operator of this proxy.');
         return
