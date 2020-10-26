@@ -29,7 +29,7 @@ app.use((req, res, next) => {
 });
 
 // thank you very much Glorfindel
-// https://meta.stackexchange.com/questions/264678/please-provide-a-way-to-download-sede-data-via-an-api/341993?noredirect=1#comment1189215_341993
+// https://meta.stackexchange.com/questions/264678
 app.post('/auth', urlencodedParser, (req, res) => {
     const { email, password } = req.body
     const authUrl = 'https://data.stackexchange.com/user/authenticate'
@@ -70,8 +70,24 @@ app.post('/auth', urlencodedParser, (req, res) => {
         console.log('POST', url)
 
         return fetch(url, { method: 'POST', body, headers, redirect: 'manual' })
-    }).then(async r => {
-        const rawHeaders = r.headers.raw()
+    }).then(r => {
+        return Promise.all([r.headers.raw(), r.text()]);
+    }).then(async ([rawHeaders, text]) => {
+        if (!text) {
+            res.status(200).send({ error: "Cannot get document. Maybe you've already logged in" })
+            return
+        }
+
+        const dom = new jsdom.JSDOM(text);
+        const { document } = dom.window
+        const errorEl = document.querySelector('.js-error-message')
+
+        if (errorEl) {
+            const error = errorEl.textContent.trim()
+            res.send({ error })
+            return
+        }
+
         const accountCookie = rawHeaders['set-cookie'].find(c => c.startsWith('acct='))
         let redirectUrl = rawHeaders['location'][0]
 
@@ -92,14 +108,16 @@ app.post('/auth', urlencodedParser, (req, res) => {
             const rawHeaders = r.headers.raw()
 
             if (i === 3) {
-                return rawHeaders['set-cookie'].find(c => c.startsWith('.ASPXAUTH='))
+                const authCookie = rawHeaders['set-cookie'].find(c => c.startsWith('.ASPXAUTH='))
+                res.send({ authCookie })
             } else {
                 redirectUrl = rawHeaders['location'][0]
             }
         }
-    }).then((authenticationCookie) => {
-        res.send({ authenticationCookie })
+    }).catch(e => {
+        console.log(e)
+        res.status(500).send()
     })
 })
 
-app.listen(port, () => console.log('Listening on port 8080'))
+app.listen(port, () => console.log(`Listening on port ${port}`))
