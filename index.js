@@ -7,7 +7,8 @@ const jsdom = require("jsdom");
 
 const app = express()
 const urlencodedParser = bodyParser.urlencoded({ extended: false })
-let originWhitelist = process.env.ORIGIN_WHITELIST ? process.env.ORIGIN_WHITELIST.split(',') : []
+const port = process.env.PORT || 80
+const originWhitelist = process.env.ORIGIN_WHITELIST ? process.env.ORIGIN_WHITELIST.split(',') : []
 
 app.use((req, res, next) => {
     const { origin } = req.headers
@@ -101,4 +102,4 @@ app.post('/auth', urlencodedParser, (req, res) => {
     })
 })
 
-app.listen(8080, () => console.log('Listening on port 8080'))
+app.listen(port, () => console.log('Listening on port 8080'))
