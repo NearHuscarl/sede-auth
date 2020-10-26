@@ -1,5 +1,6 @@
 require('dotenv').config({ path: '.env.local' })
 
+const fs = require('fs').promises
 const express = require('express')
 const bodyParser = require('body-parser')
 const fetch = require('node-fetch')
@@ -9,6 +10,17 @@ const app = express()
 const urlencodedParser = bodyParser.urlencoded({ extended: false })
 const port = process.env.PORT || 80
 const originWhitelist = process.env.ORIGIN_WHITELIST ? process.env.ORIGIN_WHITELIST.split(',') : []
+
+function writeHelper(req, res) {
+    fs.readFile('./README.html', 'utf-8').then(data => {
+        res.writeHead(403, { 'content-type': 'text/html' })
+        res.end(data)
+    })
+}
+
+app.get('/', (req, res) => {
+    writeHelper(req, res)
+})
 
 app.use((req, res, next) => {
     const { origin } = req.headers
@@ -88,6 +100,10 @@ app.post('/auth', urlencodedParser, (req, res) => {
             return
         }
 
+        if (!rawHeaders['set-cookie']) {
+            throw new Error("No cookie found.");
+        }
+
         const accountCookie = rawHeaders['set-cookie'].find(c => c.startsWith('acct='))
         let redirectUrl = rawHeaders['location'][0]
 
@@ -114,6 +130,24 @@ app.post('/auth', urlencodedParser, (req, res) => {
                 redirectUrl = rawHeaders['location'][0]
             }
         }
+    }).catch(e => {
+        console.log(e)
+        res.status(500).send()
+    })
+})
+
+app.post('/query/run/:siteId/:queryId/:revisionId', urlencodedParser, (req, res) => {
+    // siteId: https://data.stackexchange.com/sites
+    const { siteId, queryId, revisionId } = req.params
+    const url = `https://data.stackexchange.com/query/run/${siteId}/${queryId}/${revisionId}`
+    const body = new URLSearchParams(req.body)
+    const headers = { Cookie: req.headers['auth-cookie'] }
+
+    // I'm not a back-end developer (yet?), and it's not the cleanest code I've written but at least it works for now
+    fetch(url, { method: 'POST', body, headers }).then(r => {
+        return r.json()
+    }).then(json => {
+        res.send(json)
     }).catch(e => {
         console.log(e)
         res.status(500).send()

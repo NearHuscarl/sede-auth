@@ -1,0 +1,99 @@
+<h1>SEDE Auth</h1>
+<p>This API allows you to authenticate as a Stackoverflow user. When logged in, you can
+execute <a href="https://data.stackexchange.com/">Stackexchange Data Explorer</a> (SEDE) queries via REST API</p>
+<h2>Overview</h2>
+<p>Normally, you can retrieve various info about users, posts, scores... on
+Stackoverflow using the official <a href="https://api.stackexchange.com/docs">SE API</a>.
+But due to the brittle nature of REST API, it does not allow you to construct
+<a href="https://data.stackexchange.com/stackoverflow/query/4038/find-interesting-unanswered-questions">many</a>
+<a href="https://data.stackexchange.com/stackoverflow/query/161411/site-activity-and-votegraph">complex</a>
+<a href="https://data.stackexchange.com/stackoverflow/query/3543/elite-users-those-who-hold-x-of-all-reputation">queries</a>
+without making multiple sub-optimal requests, sometimes the task is not feasible at all.</p>
+<p>SEDE on the other hand, is a SQL playground where you can execute arbitrary
+queries to get, transform, combine or aggregate the data however you want.
+Remember, you are using SQL which is a whole-ass query language instead of a
+couple of predefined methods with hardcoded params to get the data.</p>
+<p>The problem is that the SE API (which sucks ball) is official and supported
+while the SEDE does not have any formal API. Thus this project happens. It
+provides you a way to authenticate the users and get the auth cookie in return.</p>
+<p>When you create a new query in SEDE, an endpoint is created for you. Everytime
+you edit the query, a new endpoint with a corresponding revision is created. To
+use the endpoint, you must pass the auth cookie as metioned previously.</p>
+<p>Comparisons between SEDE and SE API:</p>
+<table>
+<thead>
+<tr>
+<th>SEDE API</th>
+<th>SE API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>:x: Unofficial</td>
+<td>:heavy_check_mark: Official</td>
+</tr>
+<tr>
+<td>:x: Updated once a week</td>
+<td>:heavy_check_mark: Up-to-date</td>
+</tr>
+<tr>
+<td>:x: Method: <code>GET</code></td>
+<td>:heavy_check_mark: Methods: <code>GET</code>, <code>POST</code>, <code>DELETE</code> (*)</td>
+</tr>
+<tr>
+<td>:heavy_check_mark: Can construct complex queries. Timeout is the only limitation</td>
+<td>:x: Cannot construct complex queries. Its existence is the limitation</td>
+</tr>
+<tr>
+<td>:heavy_check_mark: Max 50,000 rows per request</td>
+<td>:x: Max <code>pagesize</code>: 100 per request</td>
+</tr>
+<tr>
+<td>:heavy_minus_sign: Quotas: Unknown</td>
+<td>:heavy_check_mark: Quotas: 10,000 per day</td>
+</tr>
+<tr>
+<td>:x: Can only access public data</td>
+<td>:heavy_check_mark: Can access user's private data</td>
+</tr>
+</tbody>
+</table>
+<p>&lt;sup&gt;*Certain requests require access token&lt;/sup&gt;</p>
+<h2>Getting started</h2>
+<ul>
+<li>Clone this project</li>
+<li><code>npm install</code></li>
+<li><code>npm start</code></li>
+<li>Open your browser and paste the code below to the console:</li>
+</ul>
+<pre><code class="language-javascript">fetch('')
+</code></pre>
+<h2>Usage</h2>
+<pre><code>/       Shows this help
+/auth   Authenticate the user
+</code></pre>
+<h3><code>/</code></h3>
+<p>Show this help</p>
+<h3><code>/auth</code> <code>POST</code></h3>
+<p>Authenticate the user using Stackoverflow account to grant access to the SEDE API</p>
+<p><strong>Body</strong>: Form data</p>
+<pre><code class="language-json">{
+    email: &quot;your.email@gmail.com&quot;,
+    password: &quot;your_password&quot;
+}
+</code></pre>
+<p><strong>Response</strong></p>
+<pre><code class="language-json">{
+    authenticationCookie: &quot;.ASPXAUTH=...&quot;
+}
+</code></pre>
+<h2>Example</h2>
+<h2>Credit</h2>
+<p>See the demo <a href="https://sede-auth.herokuapp.com">here</a>.</p>
+<h2>TODO</h2>
+<ul>
+<li>[ ] Main page</li>
+<li>[ ] Handling form submission error</li>
+<li>[ ] Convert to Typescript</li>
+<li>[ ] Use <code>debug()</code> instead of <code>console.log()</code></li>
+</ul>
