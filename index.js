@@ -85,11 +85,6 @@ app.post('/auth', urlencodedParser, (req, res) => {
     }).then(r => {
         return Promise.all([r.headers.raw(), r.text()]);
     }).then(async ([rawHeaders, text]) => {
-        if (!text) {
-            res.status(200).send({ error: "Cannot get document. Maybe you've already logged in" })
-            return
-        }
-
         const dom = new jsdom.JSDOM(text);
         const { document } = dom.window
         const errorEl = document.querySelector('.js-error-message')
