@@ -19,16 +19,17 @@ function writeHelper(req, res) {
   })
 }
 
+const nodeModules = (path) => __dirname + "/node_modules/" + path
+
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use("/images", express.static(__dirname + "/images"))
 app.use(
   "/github-markdown.css",
-  express.static(
-    __dirname + "/node_modules/github-markdown-css/github-markdown.css"
-  )
+  express.static(nodeModules("github-markdown-css/github-markdown.css"))
 )
 app.use(
   "/github.css",
-  express.static(__dirname + "/node_modules/highlight.js/styles/github.css")
+  express.static(nodeModules("highlight.js/styles/github.css"))
 )
 
 app.get("/", (req, res) => {
@@ -37,7 +38,9 @@ app.get("/", (req, res) => {
 
 app.use((req, res, next) => {
   const { origin } = req.headers
-  if (originWhitelist.length > 0 && originWhitelist.indexOf(origin) === -1) {
+  const inWhitelist =
+    originWhitelist.length > 0 && originWhitelist.indexOf(origin) === -1
+  if (origin && !inWhitelist) {
     res.writeHead(403, "Forbidden", req.headers)
     res.end(
       'The origin "' +
