@@ -14,8 +14,7 @@ const originWhitelist = process.env.ORIGIN_WHITELIST
 
 function writeHelper(req, res) {
   fs.readFile("./README.html", "utf-8").then((data) => {
-    res.writeHead(403, { "content-type": "text/html" })
-    res.end(data)
+    res.send(data)
   })
 }
 
