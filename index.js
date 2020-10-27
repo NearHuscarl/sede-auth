@@ -19,18 +19,8 @@ function writeHelper(req, res) {
   })
 }
 
-const nodeModules = (path) => __dirname + "/node_modules/" + path
-
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use("/images", express.static(__dirname + "/images"))
-app.use(
-  "/github-markdown.css",
-  express.static(nodeModules("github-markdown-css/github-markdown.css"))
-)
-app.use(
-  "/github.css",
-  express.static(nodeModules("highlight.js/styles/github.css"))
-)
 
 app.get("/", (req, res) => {
   writeHelper(req, res)
