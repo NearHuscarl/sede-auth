@@ -7,7 +7,6 @@ const fetch = require("node-fetch")
 const jsdom = require("jsdom")
 
 const app = express()
-const urlencodedParser = bodyParser.urlencoded({ extended: false })
 const port = process.env.PORT || 80
 const originWhitelist = process.env.ORIGIN_WHITELIST
   ? process.env.ORIGIN_WHITELIST.split(",")
@@ -19,6 +18,8 @@ function writeHelper(req, res) {
     res.end(data)
   })
 }
+
+app.use(bodyParser.urlencoded({ extended: false }))
 
 app.get("/", (req, res) => {
   writeHelper(req, res)
@@ -51,7 +52,7 @@ app.use((req, res, next) => {
 
 // thank you very much Glorfindel
 // https://meta.stackexchange.com/questions/264678
-app.post("/auth", urlencodedParser, (req, res) => {
+app.post("/auth", (req, res) => {
   const { email, password } = req.body
   const authUrl = "https://data.stackexchange.com/user/authenticate"
   const body = new URLSearchParams(
@@ -160,49 +161,54 @@ app.post("/auth", urlencodedParser, (req, res) => {
     })
 })
 
-app.post(
-  "/query/run/:siteId/:queryId/:revisionId",
-  urlencodedParser,
-  (req, res) => {
-    // siteId: https://data.stackexchange.com/sites
-    const { siteId, queryId, revisionId } = req.params
-    const url = `https://data.stackexchange.com/query/run/${siteId}/${queryId}/${revisionId}`
-    const body = new URLSearchParams(req.body)
-    const headers = { Cookie: req.headers["auth-cookie"] }
+app.post("/query/run/:siteId/:queryId/:revisionId", (req, res) => {
+  // siteId: https://data.stackexchange.com/sites
+  const { siteId, queryId, revisionId } = req.params
+  const url = `https://data.stackexchange.com/query/run/${siteId}/${queryId}/${revisionId}`
+  const body = new URLSearchParams(req.body)
+  const headers = { Cookie: req.headers["auth-cookie"] }
 
-    // I'm not a back-end developer (yet?), and it's not the cleanest code I've written but at least it works for now
-    fetch(url, { method: "POST", body, headers })
-      .then((r) => {
-        return r.json()
-      })
-      .then((json) => {
-        const { job_id } = json
-        if (!job_id) {
+  // I'm not a back-end developer (yet?), and it's not the cleanest code I've written but at least it works for now
+  fetch(url, { method: "POST", body, headers })
+    .then((r) => {
+      return r.json()
+    })
+    .then((json) => {
+      const { job_id } = json
+      if (!job_id) {
+        return res.send(json)
+      }
+
+      // the operation takes some time and result is not in cache. Polling
+      console.log(`start polling job: ${job_id}`)
+
+      const pollInterval = 1000
+      const pollTimeout = 10_000
+      const before = Date.now()
+
+      async function poll() {
+        if (Date.now() - before > pollTimeout) {
+          return res
+            .status(503)
+            .send({ error: `Response timeout after ${pollTimeout}ms` })
+        }
+
+        const url = `https://data.stackexchange.com/query/job/${job_id}?=${Date.now()}`
+        console.log("GET", url)
+        const json = await fetch(url).then((r) => r.json())
+        if (json.running) {
+          setTimeout(poll, pollInterval)
+        } else {
           res.send(json)
-          return
         }
+      }
 
-        // the operation takes some time and result is not in cache. Polling
-        console.log(`start polling job: ${job_id}`)
-
-        async function poll() {
-          const url = `https://data.stackexchange.com/query/job/${job_id}?=${Date.now()}`
-          console.log("GET", url)
-          const json = await fetch(url).then((r) => r.json())
-          if (json.running) {
-            setTimeout(poll, 1000)
-          } else {
-            res.send(json)
-          }
-        }
-
-        setTimeout(poll, 1000)
-      })
-      .catch((e) => {
-        console.log(e)
-        res.status(500).send()
-      })
-  }
-)
+      setTimeout(poll, pollInterval)
+    })
+    .catch((e) => {
+      console.log(e)
+      res.status(500).send()
+    })
+})
 
 app.listen(port, () => console.log(`Listening on port ${port}`))
