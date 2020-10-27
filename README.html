@@ -1,6 +1,29 @@
-<h1>SEDE Auth</h1>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="node_modules/github-markdown-css/github-markdown.css">
+    <link rel="stylesheet" href="node_modules/highlight.js/styles/github.css">
+    <style>
+    .markdown-body {
+      box-sizing: border-box;
+      min-width: 200px;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 45px;
+    }
+    
+    @media (max-width: 767px) {
+      .markdown-body {
+        padding: 15px;
+      }
+    }
+    </style>
+   </head>
+  <body class="markdown-body">
+    <h1>SEDE Auth</h1>
 <p>This API allows you to authenticate as a Stackoverflow user. When logged in, you can
-execute <a href="https://data.stackexchange.com/">Stackexchange Data Explorer</a> (SEDE) queries via REST API</p>
+execute <a href="https://data.stackexchange.com/">Stack Exchange Data Explorer</a> (SEDE) queries via REST API.</p>
 <h2>Overview</h2>
 <p>Normally, you can retrieve various info about users, posts, scores... on
 Stackoverflow using the official <a href="https://api.stackexchange.com/docs">SE API</a>.
@@ -14,11 +37,11 @@ queries to get, transform, combine or aggregate the data however you want.
 Remember, you are using SQL which is a whole-ass query language instead of a
 couple of predefined methods with hardcoded params to get the data.</p>
 <p>The problem is that the SE API (which sucks ball) is official and supported
-while the SEDE does not have any formal API. Thus this project happens. It
+while the SEDE does not have any formal API. Thus, this project happens. It
 provides you a way to authenticate the users and get the auth cookie in return.</p>
-<p>When you create a new query in SEDE, an endpoint is created for you. Everytime
-you edit the query, a new endpoint with a corresponding revision is created. To
-use the endpoint, you must pass the auth cookie as metioned previously.</p>
+<p>When you compose a new query in SEDE, you create an endpoint. Everytime
+you edit and run the query, a new endpoint with a corresponding revision is generated. To
+use the endpoint, you must pass the auth cookie as mentioned previously.</p>
 <p>Comparisons between SEDE and SE API:</p>
 <table>
 <thead>
@@ -29,36 +52,36 @@ use the endpoint, you must pass the auth cookie as metioned previously.</p>
 </thead>
 <tbody>
 <tr>
-<td>:x: Unofficial</td>
-<td>:heavy_check_mark: Official</td>
+<td>❌ Unofficial</td>
+<td>✔️ Official</td>
 </tr>
 <tr>
-<td>:x: Updated once a week</td>
-<td>:heavy_check_mark: Up-to-date</td>
+<td>❌ Updated once a week</td>
+<td>✔️ Up-to-date</td>
 </tr>
 <tr>
-<td>:x: Method: <code>GET</code></td>
-<td>:heavy_check_mark: Methods: <code>GET</code>, <code>POST</code>, <code>DELETE</code> (*)</td>
+<td>❌ Method: <code>GET</code></td>
+<td>✔️ Methods: <code>GET</code>, <code>POST</code>, <code>DELETE</code> (*)</td>
 </tr>
 <tr>
-<td>:heavy_check_mark: Can construct complex queries. Timeout is the only limitation</td>
-<td>:x: Cannot construct complex queries. Its existence is the limitation</td>
+<td>✔️ Can construct complex queries. Timeout is the only limitation</td>
+<td>❌ Cannot construct complex queries. Its existence is the limitation</td>
 </tr>
 <tr>
-<td>:heavy_check_mark: Max 50,000 rows per request</td>
-<td>:x: Max <code>pagesize</code>: 100 per request</td>
+<td>✔️ Max 50,000 rows per request</td>
+<td>❌ Max <code>pagesize</code>: 100 per request</td>
 </tr>
 <tr>
-<td>:heavy_minus_sign: Quotas: Unknown</td>
-<td>:heavy_check_mark: Quotas: 10,000 per day</td>
+<td>➖ Quotas: Unknown</td>
+<td>✔️ Quotas: 10,000 per day</td>
 </tr>
 <tr>
-<td>:x: Can only access public data</td>
-<td>:heavy_check_mark: Can access user's private data</td>
+<td>❌ Can only access public data</td>
+<td>✔️ Can access user's private data</td>
 </tr>
 </tbody>
 </table>
-<p>&lt;sup&gt;*Certain requests require access token&lt;/sup&gt;</p>
+<p><sup>*Certain requests require an access token</sup></p>
 <h2>Getting started</h2>
 <ul>
 <li>Clone this project</li>
@@ -66,34 +89,213 @@ use the endpoint, you must pass the auth cookie as metioned previously.</p>
 <li><code>npm start</code></li>
 <li>Open your browser and paste the code below to the console:</li>
 </ul>
-<pre><code class="language-javascript">fetch('')
+<pre><code class="language-javascript">body = <span class="hljs-keyword">new</span> URLSearchParams({
+  <span class="hljs-attr">email</span>: <span class="hljs-string">&#x27;your.email@gmail.com&#x27;</span>,
+  <span class="hljs-attr">password</span>: <span class="hljs-string">&#x27;your_password&#x27;</span>,
+})
+fetch(<span class="hljs-string">&#x27;http://localhost:80/auth&#x27;</span>, { <span class="hljs-attr">method</span>: <span class="hljs-string">&#x27;POST&#x27;</span>, body })
+  .then(<span class="hljs-function"><span class="hljs-params">res</span> =&gt;</span> res.json())
+  .then(<span class="hljs-function"><span class="hljs-params">data</span> =&gt;</span> <span class="hljs-built_in">console</span>.log(data))
 </code></pre>
 <h2>Usage</h2>
-<pre><code>/       Shows this help
-/auth   Authenticate the user
+<pre><code>/                                         Shows this help
+/auth                                     Authenticates the user
+/query/run/:siteId/:queryId/:revisionId   Execute the query
 </code></pre>
 <h3><code>/</code></h3>
-<p>Show this help</p>
+<p>Shows this help</p>
 <h3><code>/auth</code> <code>POST</code></h3>
-<p>Authenticate the user using Stackoverflow account to grant access to the SEDE API</p>
-<p><strong>Body</strong>: Form data</p>
+<p>Authenticates the user using Stackoverflow account to grant access to the SEDE API</p>
+<p><strong>Body</strong>: Form Data</p>
 <pre><code class="language-json">{
-    email: &quot;your.email@gmail.com&quot;,
-    password: &quot;your_password&quot;
+  <span class="hljs-attr">&quot;email&quot;</span>: <span class="hljs-string">&quot;your.email@gmail.com&quot;</span>,
+  <span class="hljs-attr">&quot;password&quot;</span>: <span class="hljs-string">&quot;your_password&quot;</span>
 }
 </code></pre>
 <p><strong>Response</strong></p>
 <pre><code class="language-json">{
-    authenticationCookie: &quot;.ASPXAUTH=...&quot;
+  <span class="hljs-attr">&quot;authCookie&quot;</span>: <span class="hljs-string">&quot;.ASPXAUTH=...&quot;</span>
 }
 </code></pre>
-<h2>Example</h2>
-<h2>Credit</h2>
-<p>See the demo <a href="https://sede-auth.herokuapp.com">here</a>.</p>
-<h2>TODO</h2>
+<h3><code>/query/run/:siteId/:queryId/:revisionId</code> <code>POST</code></h3>
+<p>Execute the query. It has 3 parameters:</p>
 <ul>
-<li>[ ] Main page</li>
-<li>[ ] Handling form submission error</li>
-<li>[ ] Convert to Typescript</li>
-<li>[ ] Use <code>debug()</code> instead of <code>console.log()</code></li>
+<li><code>:siteId</code>: The ID of the site. <code>1</code> for Stackoverflow. See the full list of all site IDs <a href="https://data.stackexchange.com/sites">here</a>.</li>
+<li><code>:queryId</code>: ID of the query.</li>
+<li><code>:revisionId</code>: ID of the query revision. Think of it like a commit hash in git history.</li>
 </ul>
+<p><strong>Headers</strong></p>
+<pre><code class="language-json">{
+  <span class="hljs-attr">&quot;auth-cookie&quot;</span>: <span class="hljs-string">&quot;.ASPXAUTH=...&quot;</span>
+}
+</code></pre>
+<p><strong>Body</strong>: Form Data</p>
+<p>The number of the params in the body depends entirely on the query itself</p>
+<p>This query has no params</p>
+<pre><code class="language-sql"><span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> VoteTypes
+</code></pre>
+<p>This query has one required parameter: <code>userId</code></p>
+<pre><code class="language-sql"><span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">Users</span> <span class="hljs-keyword">WHERE</span> <span class="hljs-keyword">Id</span> = <span class="hljs-comment">##userId##</span>
+</code></pre>
+<p>Example request Body:</p>
+<pre><code class="language-json">{
+  <span class="hljs-attr">&quot;userId&quot;</span>: <span class="hljs-string">&quot;1&quot;</span>
+}
+</code></pre>
+<p>This query has one optional parameter and one required parameter. If
+<code>minScore</code> is not provided, it uses the default value <code>300</code>.</p>
+<pre><code class="language-sql"><span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> Posts
+<span class="hljs-keyword">WHERE</span> Score &gt; <span class="hljs-comment">##minScore:int?300##</span>
+  <span class="hljs-keyword">AND</span> Tags <span class="hljs-keyword">LIKE</span> <span class="hljs-string">&#x27;%&#x27;</span> + <span class="hljs-comment">##tag:string## + &#x27;%&#x27;</span>
+</code></pre>
+<p>Example request Body:</p>
+<pre><code class="language-json">{
+  <span class="hljs-attr">&quot;tag&quot;</span>: <span class="hljs-string">&quot;py&quot;</span>
+}
+</code></pre>
+<p><strong>Response</strong></p>
+<pre><code class="language-json5">{
+  <span class="hljs-attr">&quot;resultSets&quot;</span>: [
+    { <span class="hljs-comment">/* Table 1 */</span> },
+    { <span class="hljs-comment">/* Table 2 */</span> },
+    ...
+  ]
+}
+</code></pre>
+<p>You can create a whitelist of origins that are allowed to call the API. Create <code>.env.local</code> in the root
+directory with the following content:</p>
+<pre><code>ORIGIN_WHITELIST=https://example-1.com,http://example-2.com
+</code></pre>
+<p>By default, the whitelist contains all origins. Once you define your own whitelist, any origins not from
+that list will be blocked.</p>
+<h2>Example</h2>
+<p>The example below demonstrates the workflow to create a query and then use the newly generated SEDE API endpoint
+to execute the query.</p>
+<ul>
+<li>
+<p>Go to <a href="https://data.stackexchange.com/">SEDE</a>. Create a new account if you don't have one.</p>
+</li>
+<li>
+<p>Hit Compose Query to create a new SQL query and paste the code below</p>
+</li>
+</ul>
+<pre><code class="language-sql"><span class="hljs-comment">-- UserId: User ID</span>
+<span class="hljs-keyword">DECLARE</span> @userId <span class="hljs-built_in">INT</span> = <span class="hljs-comment">##UserId:int##</span>
+<span class="hljs-comment">-- MinPost: Min number of posts</span>
+<span class="hljs-keyword">DECLARE</span> @minPost <span class="hljs-built_in">INT</span> = <span class="hljs-comment">##MinPost:int?5##</span>
+<span class="hljs-comment">-- TopTags: Top n Tags</span>
+<span class="hljs-keyword">DECLARE</span> @topTags <span class="hljs-built_in">INT</span> = <span class="hljs-comment">##TopTags:int?10##</span>
+
+<span class="hljs-keyword">SELECT</span> TOP (@topTags)
+  Tags.tagName,
+  <span class="hljs-keyword">SUM</span>(<span class="hljs-keyword">CASE</span> <span class="hljs-keyword">WHEN</span> Posts.PostTypeId = <span class="hljs-number">1</span> <span class="hljs-keyword">THEN</span> Posts.Score <span class="hljs-keyword">ELSE</span> <span class="hljs-number">0</span> <span class="hljs-keyword">END</span>)
+    <span class="hljs-keyword">AS</span> [Total Question Score],
+  <span class="hljs-keyword">SUM</span>(<span class="hljs-keyword">CASE</span> <span class="hljs-keyword">WHEN</span> Posts.PostTypeId = <span class="hljs-number">1</span> <span class="hljs-keyword">THEN</span> <span class="hljs-number">1</span> <span class="hljs-keyword">ELSE</span> <span class="hljs-number">0</span> <span class="hljs-keyword">END</span>)
+    <span class="hljs-keyword">AS</span> [Question Posts],
+  <span class="hljs-keyword">SUM</span>(<span class="hljs-keyword">CASE</span> <span class="hljs-keyword">WHEN</span> Posts.PostTypeId = <span class="hljs-number">2</span> <span class="hljs-keyword">THEN</span> Posts.Score <span class="hljs-keyword">ELSE</span> <span class="hljs-number">0</span> <span class="hljs-keyword">END</span>)
+    <span class="hljs-keyword">AS</span> [Total Answer Score],
+  <span class="hljs-keyword">SUM</span>(<span class="hljs-keyword">CASE</span> <span class="hljs-keyword">WHEN</span> Posts.PostTypeId = <span class="hljs-number">2</span> <span class="hljs-keyword">THEN</span> <span class="hljs-number">1</span> <span class="hljs-keyword">ELSE</span> <span class="hljs-number">0</span> <span class="hljs-keyword">END</span>)
+    <span class="hljs-keyword">AS</span> [Answer Posts],
+  <span class="hljs-keyword">SUM</span>(Posts.Score) <span class="hljs-keyword">AS</span> [Total Score],
+  <span class="hljs-keyword">COUNT</span>(*) <span class="hljs-keyword">AS</span> [Post <span class="hljs-keyword">Count</span>],
+  <span class="hljs-keyword">ROUND</span>(<span class="hljs-keyword">AVG</span>(<span class="hljs-keyword">CAST</span>(Posts.Score <span class="hljs-keyword">AS</span> <span class="hljs-built_in">FLOAT</span>)), <span class="hljs-number">1</span>, <span class="hljs-number">1</span>) <span class="hljs-keyword">AS</span> [Average Score]
+<span class="hljs-keyword">FROM</span> Posts
+<span class="hljs-keyword">JOIN</span> PostTags
+  <span class="hljs-keyword">ON</span> Posts.Id = PostTags.PostId <span class="hljs-keyword">OR</span> Posts.ParentId = PostTags.PostId
+<span class="hljs-keyword">JOIN</span> Tags
+  <span class="hljs-keyword">ON</span> PostTags.TagId = Tags.Id
+<span class="hljs-keyword">WHERE</span> Posts.OwnerUserId = @userId
+<span class="hljs-keyword">GROUP</span> <span class="hljs-keyword">BY</span> Tags.tagName
+<span class="hljs-keyword">HAVING</span> <span class="hljs-keyword">COUNT</span>(*) &gt;= @minPost
+<span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span> [Average Score] <span class="hljs-keyword">DESC</span>
+</code></pre>
+<ul>
+<li>
+<p>The script above retrieves the user's average score in the top n tags, it exposes
+some <a href="https://data.stackexchange.com/help#parameters">parameters</a>, so you don't have to modify the code everytime you want to change the filters</p>
+</li>
+<li>
+<p>Once you execute the script, open the inspector and search for the form action like below <img src="./images/queryform.png" alt="query-form"></p>
+<ul>
+<li>Alternatively you can run this code in the console to get the action url</li>
+</ul>
+<pre><code class="language-javascript"><span class="hljs-built_in">document</span>.querySelector(<span class="hljs-string">&#x27;#runQueryForm&#x27;</span>).getAttribute(<span class="hljs-string">&#x27;action&#x27;</span>)
+</code></pre>
+</li>
+<li>
+<p>Then paste and execute this code in your console. Remember to <a href="#getting-started">login</a> to get access to the auth cookie
+before that.</p>
+</li>
+</ul>
+<pre><code class="language-javascript">body = <span class="hljs-keyword">new</span> URLSearchParams({
+  <span class="hljs-attr">UserId</span>: <span class="hljs-number">1</span>,
+  <span class="hljs-attr">MinPost</span>: <span class="hljs-number">5</span>,
+  <span class="hljs-attr">TopTags</span>: <span class="hljs-number">10</span>,
+})
+headers = { <span class="hljs-string">&#x27;Auth-Cookie&#x27;</span>: <span class="hljs-string">&#x27;ASPXAUTH=...&#x27;</span> }
+fetch(<span class="hljs-string">&#x27;http://localhost:80/query/run/1/1315590/1617224&#x27;</span>, { body, headers, <span class="hljs-attr">method</span>: <span class="hljs-string">&#x27;POST&#x27;</span> } )
+  .then(<span class="hljs-function"><span class="hljs-params">r</span> =&gt;</span> r.json())
+  .then(<span class="hljs-function"><span class="hljs-params">data</span> =&gt;</span> <span class="hljs-built_in">console</span>.log(data))
+</code></pre>
+<p>The result will look like this:</p>
+<pre><code class="language-json5">{
+  <span class="hljs-attr">&quot;columns&quot;</span>: [
+    {
+      <span class="hljs-attr">&quot;name&quot;</span>: <span class="hljs-string">&quot;tagName&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;Text&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;name&quot;</span>: <span class="hljs-string">&quot;Total Question Score&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;Number&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;name&quot;</span>: <span class="hljs-string">&quot;Question Posts&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;Number&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;name&quot;</span>: <span class="hljs-string">&quot;Total Answer Score&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;Number&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;name&quot;</span>: <span class="hljs-string">&quot;Answer Posts&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;Number&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;name&quot;</span>: <span class="hljs-string">&quot;Total Score&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;Number&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;name&quot;</span>: <span class="hljs-string">&quot;Post Count&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;Number&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;name&quot;</span>: <span class="hljs-string">&quot;Average Score&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;Number&quot;</span>
+    }
+  ],
+  <span class="hljs-attr">&quot;rows&quot;</span>: [
+    [ <span class="hljs-string">&quot;sql&quot;</span>, <span class="hljs-number">1182</span>, <span class="hljs-number">2</span>, <span class="hljs-number">112</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1294</span>, <span class="hljs-number">5</span>, <span class="hljs-number">258.8</span> ],
+    [ <span class="hljs-string">&quot;c#&quot;</span>, <span class="hljs-number">3563</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1089</span>, <span class="hljs-number">20</span>, <span class="hljs-number">4652</span>, <span class="hljs-number">23</span>, <span class="hljs-number">202.2</span> ],
+    [ <span class="hljs-string">&quot;sql-server&quot;</span>, <span class="hljs-number">1275</span>, <span class="hljs-number">4</span>, <span class="hljs-number">395</span>, <span class="hljs-number">8</span>, <span class="hljs-number">1670</span>, <span class="hljs-number">12</span>, <span class="hljs-number">139.1</span> ],
+    [ <span class="hljs-string">&quot;.net&quot;</span>, <span class="hljs-number">2043</span>, <span class="hljs-number">4</span>, <span class="hljs-number">343</span>, <span class="hljs-number">17</span>, <span class="hljs-number">2386</span>, <span class="hljs-number">21</span>, <span class="hljs-number">113.6</span> ],
+    ...
+  ]
+}
+</code></pre>
+<h2>Deployment</h2>
+<p>Deploy using heroku</p>
+<pre><code class="language-bash">git add . &amp;&amp; git commit -m <span class="hljs-string">&#x27;initial commit&#x27;</span>
+heroku create sede-auth
+git push heroku master
+</code></pre>
+<h2>Credit</h2>
+<p>Big thanks to <a href="https://meta.stackexchange.com/a/341993/860277"><em>Glorfindel</em></a> for the original implementation in Java</p>
+<!-- ## TODO
+
+-- - [ ] Main page
+-- - [ ] Convert to Typescript
+-- - [ ] Use `debug()` instead of `console.log()`
+-- - [ ] Remove TODO
+
+  </body>
+</html>
