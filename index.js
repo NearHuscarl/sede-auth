@@ -4,7 +4,7 @@ const fs = require('fs').promises
 const express = require('express')
 const bodyParser = require('body-parser')
 const fetch = require('node-fetch')
-const jsdom = require("jsdom");
+const jsdom = require("jsdom")
 
 const app = express()
 const urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -142,7 +142,28 @@ app.post('/query/run/:siteId/:queryId/:revisionId', urlencodedParser, (req, res)
     fetch(url, { method: 'POST', body, headers }).then(r => {
         return r.json()
     }).then(json => {
-        res.send(json)
+        const { job_id } = json
+        if (!job_id) {
+            res.send(json)
+            return
+        }
+
+        // the operation takes some time and result is not in cache. Polling
+        console.log(`start polling job: ${job_id}`)
+
+        async function poll() {
+            const url = `https://data.stackexchange.com/query/job/${job_id}?=${Date.now()}`
+            console.log('GET', url)
+            const json = await fetch(url)
+                .then(r => r.json())
+            if (json.running) {
+                setTimeout(poll, 1000);
+            } else {
+                res.send(json)
+            }
+        }
+
+        setTimeout(poll, 1000);
     }).catch(e => {
         console.log(e)
         res.status(500).send()
