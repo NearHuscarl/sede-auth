@@ -212,9 +212,7 @@ ORDER BY [Average Score] DESC
 * The script above retrieves the user's average score in the top n tags, it exposes
 some [parameters](https://data.stackexchange.com/help#parameters), so you don't have to modify the code everytime you want to change the filters
 
-* Once you execute the script, open the inspector and search for the form action like below
-
-![query-form](./images/queryform.png)
+* Once you execute the script, open the inspector and search for the form action like below ![query-form](./images/queryform.png)
 
     * Alternatively you can run this code in the console to get the action url
     
