@@ -212,9 +212,15 @@ ORDER BY [Average Score] DESC
 * The script above retrieves the user's average score in the top n tags, it exposes
 some [parameters](https://data.stackexchange.com/help#parameters), so you don't have to modify the code everytime you want to change the filters
 
-* Once you execute the script, open the console and search for the form action like below
+* Once you execute the script, open the inspector and search for the form action like below
 
 ![query-form](./images/queryform.png)
+
+    * Alternatively you can run this code in the console to get the action url
+    
+    ```javascript
+    document.querySelector('#runQueryForm').getAttribute('action')
+    ```
 
 * Then paste and execute this code in your console. Remember to [login](#Getting Started) to get access to the auth cookie
 before that.
@@ -233,7 +239,7 @@ fetch('http://localhost:80/query/run/1/1315590/1617224', { body, headers, method
 
 The result will look like this:
 
-```json
+```json5
 {
   "columns": [
     {
