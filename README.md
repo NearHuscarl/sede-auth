@@ -1,7 +1,7 @@
 # SEDE Auth
 
 This API allows you to authenticate as a Stackoverflow user. When logged in, you can
-execute [Stackexchange Data Explorer](https://data.stackexchange.com/) (SEDE) queries via REST API.
+execute [Stack Exchange Data Explorer](https://data.stackexchange.com/) (SEDE) queries via REST API.
 
 ## Overview
 
