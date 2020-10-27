@@ -220,7 +220,7 @@ some [parameters](https://data.stackexchange.com/help#parameters), so you don't 
     document.querySelector('#runQueryForm').getAttribute('action')
     ```
 
-* Then paste and execute this code in your console. Remember to [login](#Getting Started) to get access to the auth cookie
+* Then paste and execute this code in your console. Remember to [login](#getting-started) to get access to the auth cookie
 before that.
 
 ```javascript
