@@ -31,8 +31,8 @@ function getDocument(content: string) {
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="node_modules/github-markdown-css/github-markdown.css">
-    <link rel="stylesheet" href="node_modules/highlight.js/styles/github.css">
+    <link rel="stylesheet" href="/github-markdown.css">
+    <link rel="stylesheet" href="/github.css">
     <style>
     .markdown-body {
       box-sizing: border-box;

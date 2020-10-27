@@ -20,6 +20,16 @@ function writeHelper(req, res) {
 }
 
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(
+  "/github-markdown.css",
+  express.static(
+    __dirname + "/node_modules/github-markdown-css/github-markdown.css"
+  )
+)
+app.use(
+  "/github.css",
+  express.static(__dirname + "/node_modules/highlight.js/styles/github.css")
+)
 
 app.get("/", (req, res) => {
   writeHelper(req, res)
