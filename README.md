@@ -1,7 +1,7 @@
 # SEDE Auth
 
 This API allows you to authenticate as a Stackoverflow user. When logged in, you can
-execute [Stackexchange Data Explorer](https://data.stackexchange.com/) (SEDE) queries via REST API
+execute [Stackexchange Data Explorer](https://data.stackexchange.com/) (SEDE) queries via REST API.
 
 ## Overview
 
@@ -95,7 +95,7 @@ Authenticates the user using Stackoverflow account to grant access to the SEDE A
 Execute the query. It has 3 parameters:
 * `:siteId`: The ID of the site. `1` for Stackoverflow. See the full list of all site IDs [here](https://data.stackexchange.com/sites).
 * `:queryId`: ID of the query.
-* `:revisionId`: ID of the query revision. Think of it like a commit hash in the git history.
+* `:revisionId`: ID of the query revision. Think of it like a commit hash in git history.
 
 **Headers**
 
@@ -148,7 +148,7 @@ Example request Body:
 
 **Response**
 
-```json
+```json5
 {
   "resultSets": [
     { /* Table 1 */ },
@@ -225,7 +225,7 @@ body = new URLSearchParams({
   MinPost: 5,
   TopTags: 10,
 })
-headers = { Cookie: 'ASPXAUTH=...' }
+headers = { 'Auth-Cookie': 'ASPXAUTH=...' }
 fetch('http://localhost:80/query/run/1/1315590/1617224', { body, headers, method: 'POST' } )
   .then(r => r.json())
   .then(data => console.log(data))
