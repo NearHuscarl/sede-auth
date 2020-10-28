@@ -28,7 +28,7 @@ app.get("/", (req, res) => {
 app.use((req, res, next) => {
   const { origin } = req.headers
   const inWhitelist =
-    originWhitelist.length > 0 && originWhitelist.indexOf(origin) === -1
+    originWhitelist.length === 0 || originWhitelist.indexOf(origin) !== -1
   if (origin && !inWhitelist) {
     res.writeHead(403, "Forbidden", req.headers)
     res.end(

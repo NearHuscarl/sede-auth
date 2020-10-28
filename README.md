@@ -13,7 +13,7 @@ But due to the brittle nature of REST API, it does not allow you to construct
 [queries](https://data.stackexchange.com/stackoverflow/query/3543/elite-users-those-who-hold-x-of-all-reputation)
 without making multiple sub-optimal requests, sometimes the task is not feasible at all.
 
-SEDE on the other hand, is a SQL playground where you can execute arbitrary
+SEDE on the other hand, is an SQL playground where you can execute arbitrary
 queries to get, transform, combine or aggregate the data however you want.
 Remember, you are using SQL which is a whole-ass query language instead of a
 couple of predefined methods with hardcoded params to get the data.
