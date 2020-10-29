@@ -82,7 +82,7 @@ app.post("/auth", (req, res) => {
       console.log("GET", loginUrl)
 
       if (!providenceCookie) {
-        throw new Error("No providence cookie found.")
+        throw [500, "No providence cookie found."]
       }
 
       return fetch(loginUrl, { headers })
@@ -115,12 +115,11 @@ app.post("/auth", (req, res) => {
 
       if (errorEl) {
         const error = errorEl.textContent.trim()
-        res.send({ error })
-        return
+        throw [400, error]
       }
 
       if (!rawHeaders["set-cookie"]) {
-        throw new Error("No cookie found.")
+        throw [500, "No cookie found."]
       }
 
       const accountCookie = rawHeaders["set-cookie"].find((c) =>
@@ -129,7 +128,7 @@ app.post("/auth", (req, res) => {
       let redirectUrl = rawHeaders["location"][0]
 
       if (!accountCookie) {
-        throw new Error("No account cookie found.")
+        throw [500, "No account cookie found."]
       }
 
       // OAuth2 redirection
@@ -159,7 +158,12 @@ app.post("/auth", (req, res) => {
     })
     .catch((e) => {
       console.log(e)
-      res.status(500).send()
+      if (Array.isArray(e) && e.length === 2) {
+        const [statusCode, error] = e
+        res.status(statusCode).send({ error })
+      } else {
+        res.status(500).send()
+      }
     })
 })
 
@@ -181,7 +185,7 @@ app.post("/query/run/:siteId/:queryId/:revisionId", (req, res) => {
         return res.send(json)
       }
 
-      // the operation takes some time and result is not in cache. Polling
+      // the operation takes some time and the result is not in cache. Polling
       console.log(`start polling job: ${job_id}`)
 
       const pollInterval = 1000

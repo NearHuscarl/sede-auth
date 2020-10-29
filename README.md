@@ -62,7 +62,7 @@ fetch('http://localhost:80/auth', { method: 'POST', body })
 ```
 /                                         Shows this help
 /auth                                     Authenticates the user
-/query/run/:siteId/:queryId/:revisionId   Execute the query
+/query/run/:siteId/:queryId/:revisionId   Executes the query
 ```
 
 ### `/`
@@ -92,7 +92,7 @@ Authenticates the user using Stackoverflow account to grant access to the SEDE A
 
 ### `/query/run/:siteId/:queryId/:revisionId` `POST`
 
-Execute the query. It has 3 parameters:
+Executes the query. It has 3 parameters:
 * `:siteId`: The ID of the site. `1` for Stackoverflow. See the full list of all site IDs [here](https://data.stackexchange.com/sites).
 * `:queryId`: ID of the query.
 * `:revisionId`: ID of the query revision. Think of it like a commit hash in git history.
