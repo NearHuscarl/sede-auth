@@ -250,7 +250,7 @@ app.post("/query/run/:siteId/:queryId/:revisionId", (req, res) => {
   // siteId: https://data.stackexchange.com/sites
   const { siteId, queryId, revisionId } = req.params
   const url = `https://data.stackexchange.com/query/run/${siteId}/${queryId}/${revisionId}`
-  const body = new URLSearchParams(req.body).toString()
+  const body = new URLSearchParams(req.body)
   const Cookie = req.headers["auth-cookie"]
 
   if (!Cookie) {
@@ -263,6 +263,10 @@ app.post("/query/run/:siteId/:queryId/:revisionId", (req, res) => {
   fetch(url, { method: "POST", body, headers })
     .then((r) => r.json())
     .then((json) => {
+      if (json.error) {
+        throw [400, json.error]
+      }
+
       const { job_id } = json
       if (!job_id) {
         return res.send(json)
