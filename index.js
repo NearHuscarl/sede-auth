@@ -187,65 +187,6 @@ app.post("/auth", (req, res) => {
     .catch((e) => handleError(res, e))
 })
 
-app.post("/access-token", (req, res) => {
-  const { email, password } = req.body
-  const redirect =
-    req.protocol + "://" + req.get("host") + "/access-token/success"
-  const params = new URLSearchParams({
-    client_id: process.env.STACK_APP_CLIENT_ID,
-    redirect_uri: redirect,
-  }).toString()
-  const oauthUrl = "https://stackoverflow.com/oauth?" + params
-  let providenceCookie = ""
-
-  // https://api.stackexchange.com/docs/authentication
-  // Explicit OAuth 2.0 flow consists of 4 steps:
-
-  // 1. Send a user to https://stackoverflow.com/oauth, with these query string parameters
-  //    client_id, scope, redirect_uri, state
-  console.log("GET", oauthUrl)
-  fetch(oauthUrl, { redirect: "manual" })
-    // Load login form
-    // https://stackoverflow.com/users/login?returnurl=
-    .then((r) => getLoginPage(r))
-    // 2. The user approves your app
-    .then(([html, providenceCookie]) =>
-      // Submit login form to get account cookie
-      submitLoginForm({ html, providenceCookie, email, password })
-    )
-    .then(async ([rawHeaders, html]) => {
-      const { redirectUrl, accountCookie } = validateLoginResult({
-        html,
-        headers: rawHeaders,
-      })
-
-      const headers = {
-        Cookie: `${providenceCookie}; ${accountCookie}`,
-      }
-      console.log("GET", redirectUrl)
-      // 3. The user is redirected to redirect_uri, with these query string parameters
-      //    code, state
-      // https://stackoverflow.com/oauth?client_id=
-      const r = await fetch(redirectUrl, { headers, redirect: "manual" })
-      const redirectUri = r.headers.get("location")
-      const code = new URLSearchParams(redirectUri.split("?")[1]).get("code")
-      const body = new URLSearchParams({
-        client_id: process.env.STACK_APP_CLIENT_ID,
-        client_secret: process.env.STACK_APP_CLIENT_SECRET,
-        redirect_uri: redirect,
-        code,
-      })
-      const url = "https://stackoverflow.com/oauth/access_token/json"
-      console.log("POST", url)
-      // 4. POST (application/x-www-form-urlencoded) the following parameters to
-      //    https://stackoverflow.com/oauth/access_token/json
-      return fetch(url, { method: "POST", body })
-    })
-    .then((r) => r.json())
-    .then((json) => res.send(json))
-    .catch((e) => handleError(res, e))
-})
-
 app.post("/query/run/:siteId/:queryId/:revisionId", (req, res) => {
   // siteId: https://data.stackexchange.com/sites
   const { siteId, queryId, revisionId } = req.params
