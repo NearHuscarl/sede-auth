@@ -63,6 +63,7 @@ fetch('http://localhost:80/auth', { method: 'POST', body })
 /                                         Shows this help
 /auth                                     Authenticates the user
 /query/run/:siteId/:queryId/:revisionId   Executes the query
+/query/save/:siteId/:queryId              Save the query
 ```
 
 ### `/`
@@ -73,7 +74,16 @@ Shows this help
 
 Authenticates the user using Stackoverflow account to grant access to the SEDE API
 
-**Body**: Form Data
+**Body**: `x-www-form-urlencoded`
+
+```typescript
+type Body = {
+  email: string
+  password: string
+}
+```
+
+Example:
 
 ```json
 {
@@ -105,7 +115,7 @@ Executes the query. It has 3 parameters:
 }
 ```
 
-**Body**: Form Data
+**Body**: `x-www-form-urlencoded`
 
 The number of the params in the body depends entirely on the query itself
 
@@ -155,6 +165,45 @@ Example request Body:
     { /* Table 2 */ },
     ...
   ]
+}
+```
+
+### `/query/save/:siteId/:queryId` `POST`
+
+Save the query
+
+**Headers**
+
+```json
+{
+  "auth-cookie": ".ASPXAUTH=..."
+}
+```
+
+**Body**: `x-www-form-urlencoded`
+
+```typescript
+type Body = {
+  sql: string
+  title?: string
+  description?: string
+}
+```
+
+Example:
+
+```json
+{
+  "sql": "SELECT TOP 4 * FROM Users\nWHERE Id = ##userId?1##",
+  "title": "Get user by ID"
+}
+```
+
+**Response**
+
+```json
+{
+  "revisionId": 1623140
 }
 ```
 

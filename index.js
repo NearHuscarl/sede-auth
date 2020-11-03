@@ -87,6 +87,10 @@ function validateLoginResult({ html, headers }) {
   const accountCookie = headers["set-cookie"].find((c) => c.startsWith("acct="))
   const redirectUrl = headers["location"][0]
 
+  if (redirectUrl.startsWith("https://stackoverflow.com/nocaptcha")) {
+    throw [400, `Require captcha: ${redirectUrl}`]
+  }
+
   if (!accountCookie) {
     throw [500, "No account cookie found."]
   }
