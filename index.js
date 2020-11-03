@@ -187,6 +187,32 @@ app.post("/auth", (req, res) => {
     .catch((e) => handleError(res, e))
 })
 
+function pollJob(jobId, onSuccess, onTimeout) {
+  // the operation takes some time and the result is not in cache. Polling
+  console.log(`start polling job: ${jobId}`)
+
+  const pollInterval = 1000
+  const pollTimeout = 10_000
+  const before = Date.now()
+
+  async function poll() {
+    if (Date.now() - before > pollTimeout) {
+      return onTimeout({ error: `Response timeout after ${pollTimeout}ms` })
+    }
+
+    const url = `https://data.stackexchange.com/query/job/${jobId}?=${Date.now()}`
+    console.log("GET", url)
+    const json = await fetch(url).then((r) => r.json())
+    if (json.running) {
+      setTimeout(poll, pollInterval)
+    } else {
+      onSuccess(json)
+    }
+  }
+
+  setTimeout(poll, pollInterval)
+}
+
 app.post("/query/run/:siteId/:queryId/:revisionId", (req, res) => {
   // siteId: https://data.stackexchange.com/sites
   const { siteId, queryId, revisionId } = req.params
@@ -200,12 +226,14 @@ app.post("/query/run/:siteId/:queryId/:revisionId", (req, res) => {
   }
   const headers = { Cookie }
 
-  // I'm not a back-end developer (yet?), and it's not the cleanest code I've written but at least it works for now
   fetch(url, { method: "POST", body, headers })
     .then((r) => r.json())
     .then((json) => {
       if (json.error) {
         throw [400, json.error]
+      }
+      if (json.captcha) {
+        throw [500, "Need captcha, you may want to logout and login again"]
       }
 
       const { job_id } = json
@@ -213,31 +241,44 @@ app.post("/query/run/:siteId/:queryId/:revisionId", (req, res) => {
         return res.send(json)
       }
 
-      // the operation takes some time and the result is not in cache. Polling
-      console.log(`start polling job: ${job_id}`)
+      pollJob(job_id, res.send, (error) => res.status(503).send(error))
+    })
+    .catch((e) => handleError(res, e))
+})
 
-      const pollInterval = 1000
-      const pollTimeout = 10_000
-      const before = Date.now()
+app.post("/query/save/:siteId/:queryId", (req, res) => {
+  const { siteId, queryId } = req.params
+  const url = `https://data.stackexchange.com/query/save/${siteId}/${queryId}`
+  const body = new URLSearchParams(req.body)
+  const Cookie = req.headers["auth-cookie"]
 
-      async function poll() {
-        if (Date.now() - before > pollTimeout) {
-          return res
-            .status(503)
-            .send({ error: `Response timeout after ${pollTimeout}ms` })
-        }
+  if (!Cookie) {
+    handleError(res, [400, "No auth-cookie found in the request headers"])
+    return
+  }
+  const headers = { Cookie }
 
-        const url = `https://data.stackexchange.com/query/job/${job_id}?=${Date.now()}`
-        console.log("GET", url)
-        const json = await fetch(url).then((r) => r.json())
-        if (json.running) {
-          setTimeout(poll, pollInterval)
-        } else {
-          res.send(json)
-        }
+  fetch(url, { method: "POST", body, headers })
+    .then((r) => r.json())
+    .then((json) => {
+      if (json.error) {
+        throw [400, json.error]
+      }
+      if (json.captcha) {
+        throw [500, "Need captcha, you may want to logout and login again"]
       }
 
-      setTimeout(poll, pollInterval)
+      const sendResult = (json) => {
+        const { revisionId } = json
+        res.send({ revisionId })
+      }
+
+      const { job_id } = json
+      if (!job_id) {
+        return sendResult(json)
+      }
+
+      pollJob(job_id, sendResult, (error) => res.status(503).send(error))
     })
     .catch((e) => handleError(res, e))
 })
